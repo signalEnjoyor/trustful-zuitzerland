@@ -3,7 +3,7 @@
 
 import { useEffect } from "react";
 
-import { scroll } from "viem/chains";
+import { base } from "viem/chains";
 import { useAccount, useSwitchChain } from "wagmi";
 
 import {
@@ -27,18 +27,17 @@ export default function renderPage({ params }: { params: { slug: [string] } }) {
 
   useEffect(() => {
     if (address) {
-      if (chainId !== scroll.id) {
+      if (chainId !== base.id) {
         notifyError({
           title: "Unsupported network",
-          message:
-            "Please switch to the Scroll network to use this application.",
+          message: "Please switch to the base network to use this application.",
         });
-        switchChain({ chainId: scroll.id });
+        switchChain({ chainId: base.id });
       }
     }
   }, [chainId]);
 
-  if (chainId === scroll.id) {
+  if (chainId === base.id) {
     switch (params.slug[0]) {
       case "pre-checkin":
         return <PreCheckinSection />;

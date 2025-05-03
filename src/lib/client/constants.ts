@@ -1,7 +1,7 @@
-export const EAS_CONTRACT_SCROLL = "0xC47300428b6AD2c7D03BB76D05A176058b47E6B0";
+export const EAS_CONTRACT_BASE = "0x4200000000000000000000000000000000000021";
 
-export const RESOLVER_CONTRACT_SCROLL =
-  "0xeD4544F10D347e326140dBB869b6f4120DAf2c7B";
+export const RESOLVER_CONTRACT_BASE =
+  "0x919b2Dd5a17022fe7104Cd2F3ae72E0F91859e4F";
 
 export enum ROLES {
   ROOT = "0x79e553c6f53701daa99614646285e66adb98ff0fcc1ef165dd2718e5c873bee6",
@@ -80,4 +80,4 @@ export const ZUVILLAGE_BADGE_TITLES: BadgeTitle[] = [
 ];
 
 export const ALCHEMY_PUBLIC_RPC =
-  "https://scroll-mainnet.g.alchemy.com/v2/jPLttZWzT9-vo0yJD945MbH7QzS8gSd9";
+  "https://base-mainnet.g.alchemy.com/v2/HNy2ntUiTXz3ZQpBJq1VKXbVlG11VKTN";

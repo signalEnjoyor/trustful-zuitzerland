@@ -13,7 +13,7 @@ import {
   Slide,
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
-import { scroll } from "viem/chains";
+import { base } from "viem/chains";
 import { useDisconnect } from "wagmi";
 import { useAccount, useSwitchChain } from "wagmi";
 
@@ -49,12 +49,12 @@ export const DropdownProfile = ({
     if (!address) {
       return;
     }
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
     if (await hasRole(ROLES.ROOT, address)) {
