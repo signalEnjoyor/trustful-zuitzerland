@@ -2,7 +2,7 @@ import { useConnect } from "wagmi";
 // import { cbWalletConnector } from "@/wagmi";
 // import { logConnect, logSomethingElse } from "@/to-remove";
 
-export function ConnectAndSIWE() {
+export function ConnectButton() {
   const { connectors, connect } = useConnect();
 
   return (

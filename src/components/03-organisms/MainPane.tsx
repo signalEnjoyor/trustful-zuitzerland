@@ -12,7 +12,7 @@ import { useWindowSize } from "@/hooks";
 import { WalletContext } from "@/lib/context/WalletContext";
 import styles from "@/styles/mainPane.module.css";
 
-import { ConnectAndSIWE } from "../01-atoms/ConnectAndSIWE";
+import { ConnectButton } from "../01-atoms/ConnectButton";
 
 const grotesk = Space_Grotesk({ subsets: ["latin"] });
 
@@ -78,7 +78,7 @@ export const MainPane: FC = () => {
       )}
       {!address && isMobile && (
         <Flex className={styles.content}>
-          <ConnectAndSIWE />
+          <ConnectButton />
         </Flex>
       )}
       <Flex className="bottom-[5%] absolute mt-auto">
