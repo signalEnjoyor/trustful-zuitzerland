@@ -10,6 +10,7 @@ import { TrustfulIcon } from "@/components/01-atoms";
 import { useWindowSize } from "@/hooks";
 
 import { TheHeaderMenu } from "./TheHeaderMenu";
+import { ConnectAndSIWE } from "./ConnectAndSIWE";
 
 export const TheHeader: FC = () => {
   const { isMobile } = useWindowSize();
@@ -43,9 +44,10 @@ export const TheHeader: FC = () => {
           </Heading>
         </HStack>
         <HStack>
-          {!isMobile && !isConnected && <ConnectButton label="Connect" />}
+          {!isMobile && !isConnected && <ConnectAndSIWE />}
           {isConnected && <TheHeaderMenu />}
         </HStack>
+        
       </HStack>
       <Divider className="border-slate-50 opacity-10" />
     </>

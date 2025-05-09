@@ -1,9 +1,8 @@
 import { getWalletClient } from "@wagmi/core";
 import { encodeFunctionData, type TransactionReceipt } from "viem";
 import {
-  sendTransaction,
-  estimateGas,
   waitForTransactionReceipt,
+  sendCalls,
 } from "viem/actions";
 
 import { RESOLVER_CONTRACT_BASE } from "@/lib/client/constants";
@@ -23,7 +22,6 @@ export async function setSchema({
 }): Promise<TransactionReceipt | Error> {
   const actionAsBigInt = BigInt(action);
   const walletClient = await getWalletClient(wagmiConfig);
-  let gasLimit;
 
   const data = encodeFunctionData({
     abi: [
@@ -42,30 +40,29 @@ export async function setSchema({
   });
 
   try {
-    gasLimit = estimateGas(publicClient, {
+    const { id } = await sendCalls(walletClient, {
       account: from as `0x${string}`,
-      to: RESOLVER_CONTRACT_BASE as `0x${string}`,
-      data: data,
-      value: msgValue,
-    });
-  } catch (error) {
-    return Error("Error estimating gas.");
-  }
-
-  try {
-    const transactionHash = await sendTransaction(walletClient, {
-      account: from as `0x${string}`,
-      to: RESOLVER_CONTRACT_BASE as `0x${string}`,
-      gasLimit: gasLimit,
-      data: data,
-      value: msgValue,
-      chain: walletClient.chain,
+      calls: [{
+        to: RESOLVER_CONTRACT_BASE as `0x${string}`,
+        data: data,
+        value: msgValue,
+      }],
+      capabilities:{
+        paymasterService: { 
+          url: process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT
+        } 
+      }
     });
 
-    const transactionReceipt: TransactionReceipt =
-      await waitForTransactionReceipt(publicClient, {
-        hash: transactionHash,
-      });
+
+
+    const callStatus = await walletClient.waitForCallsStatus({ id })
+
+    const transactionReceipt: TransactionReceipt = await waitForTransactionReceipt(publicClient,
+      {
+        hash: callStatus.receipts![0].transactionHash,
+      }
+    );
 
     return transactionReceipt;
   } catch (error) {

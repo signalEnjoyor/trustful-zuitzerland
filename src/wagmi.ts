@@ -1,53 +1,26 @@
-"use client";
-import { connectorsForWallets } from "@rainbow-me/rainbowkit";
-import {
-  argentWallet,
-  coinbaseWallet,
-  ledgerWallet,
-  metaMaskWallet,
-  rabbyWallet,
-  rainbowWallet,
-  safeWallet,
-  walletConnectWallet,
-} from "@rainbow-me/rainbowkit/wallets";
-import type { Transport } from "viem";
-import { createConfig, http } from "wagmi";
-import { scroll } from "wagmi/chains";
-
-const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
-
-if (!walletConnectProjectId) {
-  throw new Error(
-    "WalletConnect project ID is not defined. Please check your environment variables.",
-  );
+import { http, createConfig } from "wagmi";
+import { base } from "wagmi/chains";
+import { coinbaseWallet } from "wagmi/connectors";
+ 
+export const cbWalletConnector = coinbaseWallet({
+  appName: "Wagmi Smart Wallet",
+  preference: "smartWalletOnly",
+});
+ 
+export const wagmiConfig = createConfig({
+  chains: [base],
+  // turn off injected provider discovery
+  multiInjectedProviderDiscovery: false,
+  connectors: [cbWalletConnector],
+  ssr: true,
+  transports: {
+    [base.id]: http(process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT),
+  },
+});
+ 
+declare module "wagmi" {
+  interface Register {
+    config: typeof wagmiConfig;
+  }
 }
 
-const connectors = connectorsForWallets(
-  [
-    {
-      groupName: "Recommended",
-      wallets: [
-        metaMaskWallet,
-        rainbowWallet,
-        walletConnectWallet,
-        ledgerWallet,
-        rabbyWallet,
-        coinbaseWallet,
-        argentWallet,
-        safeWallet,
-      ],
-    },
-  ],
-  { appName: "Trustful", projectId: walletConnectProjectId },
-);
-
-const transports: Record<number, Transport> = {
-  [scroll.id]: http(),
-};
-
-export const wagmiConfig = createConfig({
-  chains: [scroll],
-  connectors,
-  transports,
-  ssr: true,
-});
