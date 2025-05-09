@@ -27,7 +27,7 @@ export const CopyToClipboardButton = ({
 
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState(false);
-  const prefixToGiveBadge = "https://trustful.ing/give-badge";
+  const prefixToGiveBadge = "https://zuitzerland.tribune.sh/give-badge";
   const linkToGiveBadgeAddress = `${prefixToGiveBadge}?address=${address}`;
 
   const handleCopy = () => {
