@@ -9,6 +9,7 @@ export function ConnectButton() {
     <div>
       {connectors.map((connector) => (
         <button
+          key={connector.id}
           onClick={() => connect({ connector })}
           className="bg-white p-2 rounded-full "
         >
