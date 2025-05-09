@@ -2,7 +2,6 @@
 import { type FC } from "react";
 
 import { Divider, HStack, Heading } from "@chakra-ui/react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 
