@@ -87,6 +87,11 @@ export async function submitAttest(
           value: attestationRequestData.value,
         },
       ],
+      capabilities: {
+        paymasterService: {
+          url: process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT,
+        },
+      },
     });
 
     const callStatus = await walletClient.waitForCallsStatus({
