@@ -1,14 +1,17 @@
 // components/MainPane.tsx
 import { useContext, type FC } from "react";
+
 import { Box, Button, Flex, Heading } from "@chakra-ui/react";
 import { Space_Grotesk } from "next/font/google";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
 import { useAccount } from "wagmi";
+
 import { CreatedByBlockful } from "@/components/01-atoms";
 import { useWindowSize } from "@/hooks";
 import { WalletContext } from "@/lib/context/WalletContext";
 import styles from "@/styles/mainPane.module.css";
+
 import { ConnectAndSIWE } from "../01-atoms/ConnectAndSIWE";
 
 const grotesk = Space_Grotesk({ subsets: ["latin"] });

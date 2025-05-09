@@ -1,9 +1,6 @@
 import { getWalletClient } from "@wagmi/core";
 import { encodeFunctionData, type TransactionReceipt } from "viem";
-import {
-  waitForTransactionReceipt,
-  sendCalls,
-} from "viem/actions";
+import { waitForTransactionReceipt, sendCalls } from "viem/actions";
 
 import { wagmiConfig } from "@/wagmi";
 
@@ -83,18 +80,18 @@ export async function submitAttest(
   try {
     const { id } = await sendCalls(walletClient, {
       account: from as `0x${string}`,
-      calls: [{
-        to: EAS_CONTRACT_BASE as `0x${string}`,
-        data: data,
-        value: attestationRequestData.value,
-      }],
+      calls: [
+        {
+          to: EAS_CONTRACT_BASE as `0x${string}`,
+          data: data,
+          value: attestationRequestData.value,
+        },
+      ],
     });
 
     const callStatus = await walletClient.waitForCallsStatus({
       id,
-    })
-
-
+    });
 
     const transactionReceipt: TransactionReceipt =
       await waitForTransactionReceipt(publicClient, {

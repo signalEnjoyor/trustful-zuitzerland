@@ -24,19 +24,19 @@ export const ZUVILLAGE_SCHEMAS: { [key: string]: Schemas } = {
     allowedRole: [ROLES.ROOT],
   },
   ATTEST_VILLAGER: {
-    uid: "0x19e22db5043a71f1cb792c49b30a6c01029226d07e4108538005ad05ee902a3e", 
+    uid: "0x19e22db5043a71f1cb792c49b30a6c01029226d07e4108538005ad05ee902a3e",
     data: "string status",
     revocable: false,
     allowedRole: [ROLES.MANAGER],
   },
   ATTEST_EVENT: {
-    uid: "0x7a21d8492a517a33de19bbda5eb50e8be7725e5247bb9494a46052d5a0e3c698", 
+    uid: "0x7a21d8492a517a33de19bbda5eb50e8be7725e5247bb9494a46052d5a0e3c698",
     data: "string title,string comment",
     revocable: false,
     allowedRole: [ROLES.VILLAGER],
   },
   ATTEST_RESPONSE: {
-    uid: "0x983015d6689d8dd3a30929fe2b886547158656064b33ef02514631ef89352202", 
+    uid: "0x983015d6689d8dd3a30929fe2b886547158656064b33ef02514631ef89352202",
     data: "bool status",
     revocable: true,
     allowedRole: [ROLES.VILLAGER],

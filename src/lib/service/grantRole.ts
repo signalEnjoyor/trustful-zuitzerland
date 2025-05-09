@@ -1,9 +1,6 @@
 import { getWalletClient } from "@wagmi/core";
 import { encodeFunctionData, type TransactionReceipt } from "viem";
-import {
-  sendCalls,
-  waitForTransactionReceipt,
-} from "viem/actions";
+import { sendCalls, waitForTransactionReceipt } from "viem/actions";
 
 import { wagmiConfig } from "@/wagmi";
 
@@ -40,27 +37,25 @@ export async function grantRole({
   });
 
   try {
-
-    const {id} = await sendCalls(walletClient, { 
-      account:from,
+    const { id } = await sendCalls(walletClient, {
+      account: from,
       calls: [
         {
           to: RESOLVER_CONTRACT_BASE,
           value: msgValue,
-          data: data
-          
+          data: data,
         },
       ],
-      capabilities: { 
-      paymasterService: { 
-        url: process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT
-      } 
-  } 
-    })
+      capabilities: {
+        paymasterService: {
+          url: process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT,
+        },
+      },
+    });
 
-    const callStatus = await walletClient.waitForCallsStatus({ 
-      id, 
-    }) 
+    const callStatus = await walletClient.waitForCallsStatus({
+      id,
+    });
 
     const transactionReceipt: TransactionReceipt =
       await waitForTransactionReceipt(publicClient, {
