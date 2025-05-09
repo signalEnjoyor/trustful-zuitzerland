@@ -16,7 +16,7 @@ import { useToast } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
 import { isAddress } from "viem";
-import { scroll } from "viem/chains";
+import { base } from "viem/chains";
 import { useAccount, useSwitchChain } from "wagmi";
 
 import { InputAddressUser } from "@/components/02-molecules/";
@@ -88,12 +88,12 @@ export const DropdownMenuAdmin = () => {
       return;
     }
 
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
 
@@ -146,7 +146,7 @@ export const DropdownMenuAdmin = () => {
             <Text>
               Badge sent at tx:{" "}
               <Link
-                href={`https://scrollscan.com//tx/${response.transactionHash}`}
+                href={`https://basescan.org/tx/${response.transactionHash}`}
                 isExternal
                 color="white"
                 textDecoration="underline"
@@ -171,12 +171,12 @@ export const DropdownMenuAdmin = () => {
       return;
     }
 
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
 
@@ -242,7 +242,7 @@ export const DropdownMenuAdmin = () => {
             <Text>
               Badge sent at tx:{" "}
               <Link
-                href={`https://scrollscan.com//tx/${response.transactionHash}`}
+                href={`https://basescan.org/tx/${response.transactionHash}`}
                 isExternal
                 color="white"
                 textDecoration="underline"
@@ -266,12 +266,12 @@ export const DropdownMenuAdmin = () => {
       return;
     }
 
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
 
@@ -323,7 +323,7 @@ export const DropdownMenuAdmin = () => {
             <Text>
               Badge sent at tx:{" "}
               <Link
-                href={`https://scrollscan.com/tx/${response.transactionHash}`}
+                href={`https://basescan.org/tx/${response.transactionHash}`}
                 isExternal
                 color="white"
                 textDecoration="underline"
@@ -361,12 +361,12 @@ export const DropdownMenuAdmin = () => {
       return;
     }
 
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
         message: "Please switch to the  network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
 
@@ -416,7 +416,7 @@ export const DropdownMenuAdmin = () => {
             <Text>
               Badge sent at tx:{" "}
               <Link
-                href={`https://scrollscan.com/tx/${response.transactionHash}`}
+                href={`https://basescan.org/tx/${response.transactionHash}`}
                 isExternal
                 color="white"
                 textDecoration="underline"
@@ -433,12 +433,12 @@ export const DropdownMenuAdmin = () => {
   };
 
   const handleRevokeManagerRole = async () => {
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
 
@@ -534,7 +534,7 @@ export const DropdownMenuAdmin = () => {
             <Text>
               Badge sent at tx:{" "}
               <Link
-                href={`https://scrollscan.com/tx/${transactionResponse.transactionHash}`}
+                href={`https://basescan.org/tx/${transactionResponse.transactionHash}`}
                 isExternal
                 color="white"
                 textDecoration="underline"
@@ -551,13 +551,12 @@ export const DropdownMenuAdmin = () => {
   // Defines the connected user to use the admin menu
   const handleConnectedAddress = async () => {
     if (address) {
-      if (chainId !== scroll.id) {
+      if (chainId !== base.id) {
         notifyError({
           title: "Unsupported network",
-          message:
-            "Please switch to the Scroll network to use this application.",
+          message: "Please switch to the base network to use this application.",
         });
-        switchChain({ chainId: scroll.id });
+        switchChain({ chainId: base.id });
         return;
       }
 
@@ -950,7 +949,11 @@ export const DropdownMenuAdmin = () => {
                 focusBorderColor={"#B1EF42"}
               >
                 {ADMIN_OPTIONS.map((admin, index) => (
-                  <option key={index} value={admin.action}>
+                  <option
+                    key={index}
+                    value={admin.action}
+                    className="text-black"
+                  >
                     {admin.action}
                   </option>
                 ))}
@@ -964,7 +967,11 @@ export const DropdownMenuAdmin = () => {
                 focusBorderColor={"#B1EF42"}
               >
                 {MANAGER_OPTIONS.map((admin, index) => (
-                  <option key={index} value={admin.action}>
+                  <option
+                    key={index}
+                    value={admin.action}
+                    className="text-black"
+                  >
                     {admin.action}
                   </option>
                 ))}

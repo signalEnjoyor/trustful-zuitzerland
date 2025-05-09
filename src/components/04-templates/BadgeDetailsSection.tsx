@@ -17,7 +17,7 @@ import { useToast } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
 import { encodeAbiParameters, parseAbiParameters } from "viem";
-import { scroll } from "viem/chains";
+import { base } from "viem/chains";
 import { useAccount, useSwitchChain } from "wagmi";
 
 import {
@@ -105,12 +105,12 @@ export const BadgeDetailsSection = () => {
     response: any,
     isConfirm: boolean | null,
   ) => {
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
     if (response instanceof Error) {
@@ -158,7 +158,7 @@ export const BadgeDetailsSection = () => {
             <Text>
               Badge sent at tx:{" "}
               <Link
-                href={`https://scrollscan.com/tx/${response.transactionHash}`}
+                href={`https://basescan.org/tx/${response.transactionHash}`}
                 isExternal
                 color="white"
                 textDecoration="underline"
@@ -191,12 +191,12 @@ export const BadgeDetailsSection = () => {
 
   // Submit attestation
   const handleAttest = async (isConfirm: boolean) => {
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
 
@@ -226,12 +226,12 @@ export const BadgeDetailsSection = () => {
 
   // Submit revoke
   const handleRevoke = async () => {
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
     if (!canProcessAttestation()) return;
@@ -373,7 +373,7 @@ export const BadgeDetailsSection = () => {
                       {getEllipsedAddress(selectedBadge.id as `0x${string}`)}
                     </CopyToClipboardButton>
                     <OutboundLinkButton
-                      label={`https://scroll.easscan.org/attestation/view/${selectedBadge.id}`}
+                      label={`https://base.easscan.org/attestation/view/${selectedBadge.id}`}
                       svgClassName="cursor-pointer text-center ml-1"
                     />
                   </Text>
@@ -392,7 +392,7 @@ export const BadgeDetailsSection = () => {
                       {getEllipsedAddress(selectedBadge.txid as `0x${string}`)}
                     </CopyToClipboardButton>
                     <OutboundLinkButton
-                      label={`https://scrollscan.com/tx/${selectedBadge.txid}`}
+                      label={`https://basescan.org/tx/${selectedBadge.txid}`}
                       svgClassName="cursor-pointer text-center ml-1"
                     />
                   </Text>
@@ -413,7 +413,7 @@ export const BadgeDetailsSection = () => {
                       )}
                     </CopyToClipboardButton>
                     <OutboundLinkButton
-                      label={`https://scroll.easscan.org/schema/view/${selectedBadge.schema.id}`}
+                      label={`https://base.easscan.org/schema/view/${selectedBadge.schema.id}`}
                       svgClassName="cursor-pointer text-center ml-1"
                     />
                   </Text>

@@ -1,14 +1,10 @@
 import { getWalletClient } from "@wagmi/core";
 import { encodeFunctionData, type TransactionReceipt } from "viem";
-import {
-  sendTransaction,
-  estimateGas,
-  waitForTransactionReceipt,
-} from "viem/actions";
+import { waitForTransactionReceipt, sendCalls } from "viem/actions";
 
 import { wagmiConfig } from "@/wagmi";
 
-import { EAS_CONTRACT_SCROLL } from "../client/constants";
+import { EAS_CONTRACT_BASE } from "../client/constants";
 import { publicClient } from "../wallet/client";
 
 export interface AttestationRequestData {
@@ -31,7 +27,6 @@ export async function submitAttest(
   attestationRequestData: AttestationRequestData,
 ): Promise<TransactionReceipt | Error> {
   const walletClient = await getWalletClient(wagmiConfig);
-  let gasLimit;
 
   const AttestationRequest: AttestationRequest = {
     schema: schemaUID,
@@ -83,29 +78,24 @@ export async function submitAttest(
   });
 
   try {
-    gasLimit = await estimateGas(publicClient, {
+    const { id } = await sendCalls(walletClient, {
       account: from as `0x${string}`,
-      to: EAS_CONTRACT_SCROLL as `0x${string}`,
-      data: data,
-      value: attestationRequestData.value,
+      calls: [
+        {
+          to: EAS_CONTRACT_BASE as `0x${string}`,
+          data: data,
+          value: attestationRequestData.value,
+        },
+      ],
     });
-  } catch (error) {
-    return Error("Error estimating gas.");
-  }
 
-  try {
-    const transactionHash = await sendTransaction(walletClient, {
-      account: from as `0x${string}`,
-      to: EAS_CONTRACT_SCROLL as `0x${string}`,
-      gasLimit: gasLimit,
-      data: data,
-      value: attestationRequestData.value,
-      chain: walletClient.chain,
+    const callStatus = await walletClient.waitForCallsStatus({
+      id,
     });
 
     const transactionReceipt: TransactionReceipt =
       await waitForTransactionReceipt(publicClient, {
-        hash: transactionHash,
+        hash: callStatus.receipts![0].transactionHash,
       });
 
     return transactionReceipt;

@@ -22,7 +22,7 @@ import { watchAccount } from "@wagmi/core";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BeatLoader } from "react-spinners";
 import { isAddress, encodeAbiParameters, parseAbiParameters } from "viem";
-import { scroll } from "viem/chains";
+import { base } from "viem/chains";
 import { normalize } from "viem/ens";
 import { useAccount, useSwitchChain } from "wagmi";
 
@@ -271,12 +271,12 @@ export const GiveBadgeSection = () => {
       return;
     }
 
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
 
@@ -438,7 +438,7 @@ export const GiveBadgeSection = () => {
             <Text>
               Badge sent at tx:{" "}
               <Link
-                href={`https://scrollscan.com/tx/${response.transactionHash}`}
+                href={`https://basescan.org/tx/${response.transactionHash}`}
                 isExternal
                 color="white"
                 textDecoration="underline"
@@ -601,7 +601,11 @@ export const GiveBadgeSection = () => {
                       onChange={handleBadgeSelectChange}
                     >
                       {inputBadgeTitleList?.map((title, index) => (
-                        <option key={index} value={title}>
+                        <option
+                          key={index}
+                          value={title}
+                          className="text-black"
+                        >
                           {title}
                         </option>
                       ))}

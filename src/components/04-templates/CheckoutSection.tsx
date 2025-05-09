@@ -25,7 +25,7 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import { BeatLoader } from "react-spinners";
-import { scroll } from "viem/chains";
+import { base } from "viem/chains";
 import { encodeAbiParameters, parseAbiParameters } from "viem/utils";
 import { useAccount, useSwitchChain } from "wagmi";
 
@@ -86,12 +86,12 @@ export const CheckoutSection = () => {
       });
       return;
     }
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
     if (!checkInTxId) {
@@ -174,7 +174,7 @@ export const CheckoutSection = () => {
             <Text>
               Check-out at tx:{" "}
               <Link
-                href={`https://scrollscan.com/tx/${response.transactionHash}`}
+                href={`https://basescan.org/tx/${response.transactionHash}`}
                 isExternal
                 color="white"
                 textDecoration="underline"
@@ -202,12 +202,12 @@ export const CheckoutSection = () => {
 
   // Check the user's check-in timestamp
   const handleQuery = async () => {
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
 
@@ -295,12 +295,12 @@ export const CheckoutSection = () => {
       });
       return;
     }
-    if (chainId !== scroll.id) {
+    if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the Scroll network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
-      switchChain({ chainId: scroll.id });
+      switchChain({ chainId: base.id });
       return;
     }
     if (villagerAttestationCount && villagerAttestationCount > 2) {

@@ -1,14 +1,10 @@
 import { getWalletClient } from "@wagmi/core";
 import { encodeFunctionData, type TransactionReceipt } from "viem";
-import {
-  sendTransaction,
-  estimateGas,
-  waitForTransactionReceipt,
-} from "viem/actions";
+import { sendCalls, waitForTransactionReceipt } from "viem/actions";
 
 import { wagmiConfig } from "@/wagmi";
 
-import { RESOLVER_CONTRACT_SCROLL } from "../client/constants";
+import { RESOLVER_CONTRACT_BASE } from "../client/constants";
 import { publicClient } from "../wallet/client";
 
 export async function grantRole({
@@ -23,7 +19,6 @@ export async function grantRole({
   msgValue: bigint;
 }): Promise<TransactionReceipt | Error> {
   const walletClient = await getWalletClient(wagmiConfig);
-  let gasLimit;
 
   const data = encodeFunctionData({
     abi: [
@@ -42,29 +37,29 @@ export async function grantRole({
   });
 
   try {
-    gasLimit = estimateGas(publicClient, {
-      account: from as `0x${string}`,
-      to: RESOLVER_CONTRACT_SCROLL as `0x${string}`,
-      data: data,
-      value: msgValue,
+    const { id } = await sendCalls(walletClient, {
+      account: from,
+      calls: [
+        {
+          to: RESOLVER_CONTRACT_BASE,
+          value: msgValue,
+          data: data,
+        },
+      ],
+      capabilities: {
+        paymasterService: {
+          url: process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT,
+        },
+      },
     });
-  } catch (error) {
-    return Error("Error estimating gas.");
-  }
 
-  try {
-    const transactionHash = await sendTransaction(walletClient, {
-      account: from as `0x${string}`,
-      to: RESOLVER_CONTRACT_SCROLL as `0x${string}`,
-      gasLimit: gasLimit,
-      data: data,
-      value: msgValue,
-      chain: walletClient.chain,
+    const callStatus = await walletClient.waitForCallsStatus({
+      id,
     });
 
     const transactionReceipt: TransactionReceipt =
       await waitForTransactionReceipt(publicClient, {
-        hash: transactionHash,
+        hash: callStatus.receipts![0].transactionHash,
       });
 
     return transactionReceipt;

@@ -9,6 +9,7 @@ import { useAccount } from "wagmi";
 import { TrustfulIcon } from "@/components/01-atoms";
 import { useWindowSize } from "@/hooks";
 
+import { ConnectAndSIWE } from "./ConnectAndSIWE";
 import { TheHeaderMenu } from "./TheHeaderMenu";
 
 export const TheHeader: FC = () => {
@@ -43,7 +44,7 @@ export const TheHeader: FC = () => {
           </Heading>
         </HStack>
         <HStack>
-          {!isMobile && !isConnected && <ConnectButton label="Connect" />}
+          {!isMobile && !isConnected && <ConnectAndSIWE />}
           {isConnected && <TheHeaderMenu />}
         </HStack>
       </HStack>
