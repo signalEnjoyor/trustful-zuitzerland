@@ -50,17 +50,20 @@ export const DropdownMenuAdmin = () => {
   const [adminAction, setAdminAction] = useState<ADMIN_ACTION | null>(null);
   const [role, setRole] = useState<ROLES | null>(null);
   const [inputAddress, setInputAddress] = useState<string>("");
-  const [validAddress, setValidAddress] = useState<EthereumAddress | null>(
-    null,
-  );
+  const [validAddress, setValidAddress] = useState<EthereumAddress | null>(null);
   const [isloading, setIsLoading] = useState<boolean>(false);
   const [attestationTitleText, setAttestationTitleText] = useState<string>("");
-  const [attestationBadgeIsValid, setAttestationBadgeIsValid] =
-    useState<boolean>(false);
+  const [attestationBadgeIsValid, setAttestationBadgeIsValid] = useState<boolean>(false);
   const [schemaUID, setSchemaUID] = useState<string | `0x${string}`>("");
   const [action, setAction] = useState<number>(0);
   const { setNewTitleAdded } = useContext(GiveBadgeContext);
   const { switchChain } = useSwitchChain();
+
+  // New state variables for revoke checks
+  const [isCheckingRevoke, setIsCheckingRevoke] = useState(false);
+  const [canRevoke, setCanRevoke] = useState(false);
+  const [revokeErrorMessage, setRevokeErrorMessage] = useState<string | null>(null);
+  const [managerAttestationId, setManagerAttestationId] = useState<string | null>(null);
 
   // Updates the validAddress when the inputAddress changes
   useEffect(() => {
@@ -76,6 +79,65 @@ export const DropdownMenuAdmin = () => {
   useEffect(() => {
     setRole(null);
   }, [adminAction]);
+
+  // Background checks for revoke conditions
+  useEffect(() => {
+    const checkRevokeConditions = async () => {
+      if (adminAction !== ADMIN_ACTION.REVOKE_MANAGER || !isAddress(inputAddress)) {
+        setCanRevoke(false);
+        setRevokeErrorMessage(null);
+        setManagerAttestationId(null);
+        return;
+      }
+
+      setIsCheckingRevoke(true);
+      setRevokeErrorMessage(null);
+      setManagerAttestationId(null);
+
+      const queryVariables = {
+        where: {
+          schemaId: {
+            equals: ZUVILLAGE_SCHEMAS.ATTEST_MANAGER.uid,
+          },
+          recipient: {
+            equals: inputAddress,
+          },
+          decodedDataJson: {
+            contains: "Manager",
+          },
+        },
+      };
+
+      const { response, success } = await fetchEASData(ID_CHECK_IN_QUERY, queryVariables);
+
+      if (!success || !response) {
+        setCanRevoke(false);
+        setRevokeErrorMessage("Error while fetching Attestation data from Subgraphs");
+        setIsCheckingRevoke(false);
+        return;
+      }
+
+      if (response.data.data.attestations.length === 0) {
+        setCanRevoke(false);
+        setRevokeErrorMessage("This user doesn't have a Manager badge.");
+        setIsCheckingRevoke(false);
+        return;
+      }
+
+      if (response.data.data.attestations[0].revoked) {
+        setCanRevoke(false);
+        setRevokeErrorMessage("This badge was already revoked");
+        setIsCheckingRevoke(false);
+        return;
+      }
+
+      setCanRevoke(true);
+      setManagerAttestationId(response.data.data.attestations[0].id);
+      setIsCheckingRevoke(false);
+    };
+
+    checkRevokeConditions();
+  }, [adminAction, inputAddress]);
 
   // Call the grantRole function with the current state values
   const handleGrantRole = async () => {
@@ -124,8 +186,6 @@ export const DropdownMenuAdmin = () => {
 
     setIsLoading(false);
 
-    // TODO: Move this function to only one place
-    // TODO: Move to useNotify to create a notifySuccessWithLink function
     toast({
       position: "top-right",
       duration: 4000,
@@ -207,7 +267,6 @@ export const DropdownMenuAdmin = () => {
 
     setIsLoading(false);
 
-    // TODO: Move to useNotify to create a notifySuccessWithLink function
     toast({
       position: "top-right",
       duration: 4000,
@@ -288,7 +347,6 @@ export const DropdownMenuAdmin = () => {
 
     setIsLoading(false);
 
-    // TODO: Move to useNotify to create a notifySuccessWithLink function
     toast({
       position: "top-right",
       duration: 4000,
@@ -324,10 +382,89 @@ export const DropdownMenuAdmin = () => {
     setNewTitleAdded(true);
   };
 
+  // Simplified handleRevokeManagerRole with precomputed state
+  const handleRevokeManagerRole = async () => {
+    if (chainId !== base.id) {
+      notifyError({
+        title: "Unsupported network",
+        message: "Please switch to the base network to use this application.",
+      });
+      switchChain({ chainId: base.id });
+      return;
+    }
+
+    if (!canRevoke || !managerAttestationId) {
+      setIsLoading(false);
+      notifyError({
+        title: "Cannot revoke",
+        message: revokeErrorMessage || "Conditions not met",
+      });
+      return;
+    }
+
+    const transactionResponse = await revoke(
+      address as `0x${string}`,
+      ZUVILLAGE_SCHEMAS.ATTEST_MANAGER.uid,
+      managerAttestationId as `0x${string}`,
+      0n,
+    );
+
+    if (transactionResponse instanceof Error) {
+      setIsLoading(false);
+      notifyError({
+        title: "Transaction Rejected",
+        message: transactionResponse.message,
+      });
+      return;
+    }
+
+    if (transactionResponse.status !== "success") {
+      setIsLoading(false);
+      notifyError({
+        title: "Transaction Rejected",
+        message: "Contract execution reverted.",
+      });
+      return;
+    }
+
+    setIsLoading(false);
+
+    toast({
+      position: "top-right",
+      duration: 4000,
+      isClosable: true,
+      render: () => (
+        <Box
+          color="white"
+          p={4}
+          bg="green.500"
+          borderRadius="md"
+          boxShadow="lg"
+          display="flex"
+          alignItems="center"
+        >
+          <Icon as={CheckCircleIcon} w={6} h={6} mr={3} />
+          <Box>
+            <Text fontWeight="bold">Success.</Text>
+            <Text>
+              Badge revoked at tx:{" "}
+              <Link
+                href={`https://basescan.org/tx/${transactionResponse.transactionHash}`}
+                isExternal
+                color="white"
+                textDecoration="underline"
+              >
+                {getEllipsedAddress(transactionResponse.transactionHash)}
+              </Link>
+            </Text>
+          </Box>
+        </Box>
+      ),
+    });
+  };
+
   // Get the current role selected and move to state
-  const handleRoleSelectChange = (
-    event: ChangeEvent<HTMLSelectElement>,
-  ): void => {
+  const handleRoleSelectChange = (event: ChangeEvent<HTMLSelectElement>): void => {
     const selectedRoleValue = event.target.value;
     const rolesValues = Object.values(ROLES_OPTIONS);
     const selectedRole = rolesValues.find((role) => role === selectedRoleValue);
@@ -350,7 +487,7 @@ export const DropdownMenuAdmin = () => {
     if (chainId !== base.id) {
       notifyError({
         title: "Unsupported network",
-        message: "Please switch to the  network to use this application.",
+        message: "Please switch to the base network to use this application.",
       });
       switchChain({ chainId: base.id });
       return;
@@ -381,7 +518,6 @@ export const DropdownMenuAdmin = () => {
       return;
     }
 
-    // TODO: Move to useNotify to create a notifySuccessWithLink function
     toast({
       position: "top-right",
       duration: 4000,
@@ -416,122 +552,6 @@ export const DropdownMenuAdmin = () => {
     });
 
     setIsLoading(false);
-  };
-
-  const handleRevokeManagerRole = async () => {
-    if (chainId !== base.id) {
-      notifyError({
-        title: "Unsupported network",
-        message: "Please switch to the base network to use this application.",
-      });
-      switchChain({ chainId: base.id });
-      return;
-    }
-
-    const queryVariables = {
-      where: {
-        schemaId: {
-          equals: ZUVILLAGE_SCHEMAS.ATTEST_MANAGER.uid,
-        },
-        recipient: {
-          equals: inputAddress,
-        },
-        decodedDataJson: {
-          contains: "Manager",
-        },
-      },
-    };
-
-    const { response, success } = await fetchEASData(
-      ID_CHECK_IN_QUERY,
-      queryVariables,
-    );
-
-    if (!success || !response) {
-      notifyError({
-        title: "Cannot fetch EAS",
-        message: "Error while fetching Attestation data from Subgraphs",
-      });
-      return;
-    }
-
-    if (response.data.data.attestations.length === 0) {
-      notifyError({
-        title: "Cannot fetch Badge",
-        message: "This user doesn't not have a Manager badge.",
-      });
-      return;
-    }
-
-    if (response.data.data.attestations[0].revoked) {
-      notifyError({
-        title: "Already Revoked",
-        message: "This badge was revoked",
-      });
-      return;
-    }
-
-    const txuid = response.data.data.attestations[0].id;
-    const transactionResponse = await revoke(
-      address as `0x${string}`,
-      ZUVILLAGE_SCHEMAS.ATTEST_MANAGER.uid,
-      txuid as `0x${string}`,
-      0n,
-    );
-
-    if (transactionResponse instanceof Error) {
-      setIsLoading(false);
-      notifyError({
-        title: "Transaction Rejected",
-        message: transactionResponse.message,
-      });
-      return;
-    }
-
-    if (transactionResponse.status !== "success") {
-      setIsLoading(false);
-      notifyError({
-        title: "Transaction Rejected",
-        message: "Contract execution reverted.",
-      });
-      return;
-    }
-
-    setIsLoading(false);
-
-    // TODO: Move to useNotify to create a notifySuccessWithLink function
-    toast({
-      position: "top-right",
-      duration: 4000,
-      isClosable: true,
-      render: () => (
-        <Box
-          color="white"
-          p={4}
-          bg="green.500"
-          borderRadius="md"
-          boxShadow="lg"
-          display="flex"
-          alignItems="center"
-        >
-          <Icon as={CheckCircleIcon} w={6} h={6} mr={3} />
-          <Box>
-            <Text fontWeight="bold">Success.</Text>
-            <Text>
-              Badge sent at tx:{" "}
-              <Link
-                href={`https://basescan.org/tx/${transactionResponse.transactionHash}`}
-                isExternal
-                color="white"
-                textDecoration="underline"
-              >
-                {getEllipsedAddress(transactionResponse.transactionHash)}
-              </Link>
-            </Text>
-          </Box>
-        </Box>
-      ),
-    });
   };
 
   // Defines the connected user to use the admin menu
@@ -580,9 +600,7 @@ export const DropdownMenuAdmin = () => {
   };
 
   // Get the current action selected from the Admin menu and move to state
-  const handleAdminActionSelectChange = (
-    event: ChangeEvent<HTMLSelectElement>,
-  ) => {
+  const handleAdminActionSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
     ADMIN_OPTIONS.filter((admin) => {
       if (event.target.value === "") {
         setAdminAction(null);
@@ -594,9 +612,7 @@ export const DropdownMenuAdmin = () => {
   };
 
   // Get the current action selected from the Manager menu and move to state
-  const handleManagerActionSelectChange = (
-    event: ChangeEvent<HTMLSelectElement>,
-  ) => {
+  const handleManagerActionSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
     MANAGER_OPTIONS.filter((admin) => {
       if (event.target.value === "") {
         setAdminAction(null);
@@ -607,9 +623,7 @@ export const DropdownMenuAdmin = () => {
     });
   };
 
-  const handleAttestationValidBadge = (
-    event: ChangeEvent<HTMLSelectElement>,
-  ): void => {
+  const handleAttestationValidBadge = (event: ChangeEvent<HTMLSelectElement>): void => {
     const selectedRoleValue = event.target.value;
 
     if (selectedRoleValue === "Yes") {
@@ -620,9 +634,7 @@ export const DropdownMenuAdmin = () => {
   };
 
   // Get the current title and move to state. It also updates the textarea height based on the content
-  const handleTextareaSchemaUIDChange = (
-    event: ChangeEvent<HTMLTextAreaElement>,
-  ) => {
+  const handleTextareaSchemaUIDChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setSchemaUID(event.target.value);
   };
 
@@ -647,13 +659,11 @@ export const DropdownMenuAdmin = () => {
               onChange={handleRoleSelectChange}
               focusBorderColor={"#B1EF42"}
             >
-              {Object.entries(ROLES_OPTIONS).map(
-                ([roleName, roleValue], index) => (
-                  <option key={index} value={roleValue}>
-                    {roleName}
-                  </option>
-                ),
-              )}
+              {Object.entries(ROLES_OPTIONS).map(([roleName, roleValue], index) => (
+                <option key={index} value={roleValue}>
+                  {roleName}
+                </option>
+              ))}
             </Select>
           </Flex>
           <InputAddressUser
@@ -664,7 +674,7 @@ export const DropdownMenuAdmin = () => {
           <Box>
             <Flex className="pb-4 gap-4 items-center">
               <Text className="flex min-w-[80px] text-slate-50 opacity-70 text-sm font-normal leading-tight">
-                &#x26A0;WARNING&#x26A0;
+                ⚠WARNING⚠
                 <br />
                 {`This is an access control function that works outside the scope of how Trustul is supposed to work and the behaviour of the dApp might not be as expected once you override.`}
                 <br />
@@ -704,13 +714,11 @@ export const DropdownMenuAdmin = () => {
               onChange={handleRoleSelectChange}
               focusBorderColor={"#B1EF42"}
             >
-              {Object.entries(ROLES_OPTIONS).map(
-                ([roleName, roleValue], index) => (
-                  <option key={index} value={roleValue}>
-                    {roleName}
-                  </option>
-                ),
-              )}
+              {Object.entries(ROLES_OPTIONS).map(([roleName, roleValue], index) => (
+                <option key={index} value={roleValue}>
+                  {roleName}
+                </option>
+              ))}
             </Select>
           </Flex>
           <InputAddressUser
@@ -721,7 +729,7 @@ export const DropdownMenuAdmin = () => {
           <Box>
             <Flex className="pb-4 gap-4 items-center">
               <Text className="flex min-w-[80px] text-slate-50 opacity-70 text-sm font-normal leading-tight">
-                &#x26A0;WARNING&#x26A0;
+                ⚠WARNING⚠
                 <br />
                 {`This is an access control function that works outside the scope of how Trustul is supposed to work and the behaviour of the dApp might not be as expected once you override.`}
                 <br />
@@ -761,18 +769,23 @@ export const DropdownMenuAdmin = () => {
           <Box>
             <Flex className="pb-4 gap-4 items-center">
               <Text className="flex min-w-[80px] text-slate-50 opacity-70 text-sm font-normal leading-tight">
-                &#x26A0;WARNING&#x26A0;
+                ⚠WARNING⚠
                 <br />
                 {`This action is irreversible. You are revoking the Manager badge from the address ${inputAddress ? inputAddress : "above"}. He will not be able to get this badge again and its status will show revoked for eternity in the EAS protocol. Are you sure you want to proceed?`}
               </Text>
             </Flex>
+            {revokeErrorMessage && (
+              <Text color="red.500" className="text-sm font-normal px-4">
+                {revokeErrorMessage}
+              </Text>
+            )}
           </Box>
           <Button
             className="w-full justify-center items-center gap-2 px-6 bg-[#B1EF42] text-[#161617] rounded-lg"
             _hover={{ bg: "#B1EF42" }}
             _active={{ bg: "#B1EF42" }}
             isLoading={isloading}
-            isDisabled={!isAddress(inputAddress.toString())}
+            isDisabled={!canRevoke || isCheckingRevoke}
             spinner={<BeatLoader size={8} color="white" />}
             onClick={() => {
               setIsLoading(true);
@@ -877,19 +890,17 @@ export const DropdownMenuAdmin = () => {
               onChange={handleAction}
               focusBorderColor={"#B1EF42"}
             >
-              {Object.entries(ACTIONS_OPTIONS).map(
-                ([schemaUID, actionSchemaValue], index) => (
-                  <option key={index} value={actionSchemaValue}>
-                    {schemaUID}
-                  </option>
-                ),
-              )}
+              {Object.entries(ACTIONS_OPTIONS).map(([schemaUID, actionSchemaValue], index) => (
+                <option key={index} value={actionSchemaValue}>
+                  {schemaUID}
+                </option>
+              ))}
             </Select>
           </Flex>
           <Box>
             <Flex className="pb-4 gap-4 items-center">
               <Text className="flex min-w-[80px] text-slate-50 opacity-70 text-sm font-normal leading-tight">
-                &#x26A0;WARNING&#x26A0;
+                ⚠WARNING⚠
                 <br />
                 {`Only use call this function if you really know what you are doing as it will affect how the Resolver Contract works with EAS and Trusful.`}
               </Text>
@@ -935,11 +946,7 @@ export const DropdownMenuAdmin = () => {
                 focusBorderColor={"#B1EF42"}
               >
                 {ADMIN_OPTIONS.map((admin, index) => (
-                  <option
-                    key={index}
-                    value={admin.action}
-                    className="text-black"
-                  >
+                  <option key={index} value={admin.action} className="text-black">
                     {admin.action}
                   </option>
                 ))}
@@ -953,11 +960,7 @@ export const DropdownMenuAdmin = () => {
                 focusBorderColor={"#B1EF42"}
               >
                 {MANAGER_OPTIONS.map((admin, index) => (
-                  <option
-                    key={index}
-                    value={admin.action}
-                    className="text-black"
-                  >
+                  <option key={index} value={admin.action} className="text-black">
                     {admin.action}
                   </option>
                 ))}
