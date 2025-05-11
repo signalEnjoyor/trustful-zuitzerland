@@ -490,7 +490,7 @@ export const GiveBadgeSection = () => {
                   gap={8}
                 >
                   <Text className="flex text-slate-50 text-2xl font-normal font-['Space Grotesk'] leading-loose">
-                    Let's give a badge to someone
+                    Let&apos;s give a badge to someone
                   </Text>
                   <Flex className="w-full flex-col">
                     <Flex className="gap-4 pb-4 justify-start items-center">
