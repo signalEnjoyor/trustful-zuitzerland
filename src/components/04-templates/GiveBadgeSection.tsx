@@ -25,6 +25,8 @@ import { isAddress, encodeAbiParameters, parseAbiParameters } from "viem";
 import { base } from "viem/chains";
 import { normalize } from "viem/ens";
 import { useAccount, useSwitchChain } from "wagmi";
+import { ENS_ADDR_QUERY } from "@/lib/client/schemaQueries";
+
 
 import {
   BadgeDetailsNavigation,
