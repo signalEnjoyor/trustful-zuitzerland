@@ -84,7 +84,7 @@ export const CheckinSection = () => {
               >
                 <Flex className={"items-center"}>
                   <Text className="text-center text-lime-400 text-2xl font-normal font-['Space Grotesk'] leading-loose">
-                    Check in ZuVillage Georgia
+                    Check in Zuitzerland
                   </Text>
                 </Flex>
                 <Flex className={"items-center"} gap={2}>
@@ -158,13 +158,13 @@ export const CheckinSection = () => {
                 <CircleQuestion />
                 <Flex flexDirection={"column"} justifyContent={"center"}>
                   <Text className="text-slate-50 text-sm font-normal leading-tight">
-                    How does it work in ZuVillage?
+                    How does it work in Zuitzerland?
                   </Text>
                 </Flex>
               </Flex>
               <Collapse in={isZuVillageVisible} animateOpacity>
                 <Box p="40px" color="white" pt="20px" pb="20px">
-                  In ZuVillage, your interactions and contributions will be
+                  In Zuitzerland, your interactions and contributions will be
                   attested and stored on-chain. This promotes dialogue, avoids
                   echo chambers, and encourages participation. In the future,
                   this aggregated reputation can be used to benefit
@@ -189,7 +189,7 @@ export const CheckinSection = () => {
                 <Box p="40px" color="white" pt="20px" pb="20px">
                   The badges are created with EAS and managed by Trustful, it
                   aggregates reputation based on interactions and contributions
-                  during ZuVillage Georgia. It allows members to give and
+                  during Zuitzerland. It allows members to give and
                   receive badges recognizing their contributions and knowledge,
                   fostering real connections and deep dialogues, therefore
                   helping to build reputation scores.
@@ -211,7 +211,7 @@ export const CheckinSection = () => {
               <Collapse in={isCheckoutForVisible} animateOpacity>
                 <Box p="40px" color="white" pt="20px" pb="20px">
                   The check-out badge confirms that you are ending your stay at
-                  ZuVillage Georgia. It will be used to calculate how long you
+                  Zuitzerland. It will be used to calculate how long you
                   lived in our ZuVillage, which will aggregate to your
                   ZuVillager reputation score. It will also help us keep track
                   of how many people are currently present.

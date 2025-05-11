@@ -358,7 +358,7 @@ export const CheckoutSection = () => {
                     <Text className="text-center text-lime-400 text-2xl font-normal font-['Space Grotesk'] leading-loose">
                       Check out of
                       <br />
-                      ZuVillage Georgia
+                      Zuitzerland
                     </Text>
                   ) : villagerAttestationCount === 2 ? (
                     <Text className="text-center text-lime-400 text-2xl font-normal font-['Space Grotesk'] leading-loose">
@@ -379,7 +379,7 @@ export const CheckoutSection = () => {
                     </Text>
                   ) : villagerAttestationCount === 2 ? (
                     <Text className="text-center text-slate-50 text-base font-normal leading-snug">
-                      For being a cherished member of ZuVillage Georgia.
+                      For being a cherished member of Zuitzerland.
                     </Text>
                   ) : (
                     <Text className="text-center text-slate-50 text-base font-normal leading-snug">
@@ -534,7 +534,7 @@ export const CheckoutSection = () => {
               <ModalHeader>CHECK OUT</ModalHeader>
               <ModalCloseButton />
               <ModalBody fontWeight={500}>
-                I&apos;m checking out of ZuVillage Georgia.
+                I&apos;m checking out of Zuitzerland.
                 <br />
                 I&apos;m aware that this action is irreversible.
               </ModalBody>

@@ -45,7 +45,7 @@ export const PreCheckinSection = () => {
             >
               <Image
                 src="/img/zuvillage.png"
-                alt="ZuVillage Georgia Have Fun"
+                alt="Zuitzerland Have Fun"
                 objectFit="cover"
                 width={300}
                 height={300}
