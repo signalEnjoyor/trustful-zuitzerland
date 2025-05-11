@@ -180,20 +180,6 @@ export const DropdownMenuAdmin = () => {
       return;
     }
 
-    const userHasRole = await hasRole(
-      role,
-      validAddress.address as `0x${string}`,
-    );
-
-    if (!userHasRole) {
-      setIsLoading(false);
-      notifyError({
-        title: `Unauthorized Access`,
-        message: "Address doesn't have this role.",
-      });
-      return;
-    }
-
     const response = await revokeRole({
       from: address,
       role: role,
