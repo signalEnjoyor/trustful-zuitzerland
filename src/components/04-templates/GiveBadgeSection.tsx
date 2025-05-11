@@ -44,7 +44,6 @@ import {
   ROLES,
   type BadgeTitle,
 } from "@/lib/client/constants";
-import { ENS_ADDR_QUERY } from "@/lib/client/schemaQueries";
 import { GiveBadgeContext } from "@/lib/context/GiveBadgeContext";
 import { WalletContext } from "@/lib/context/WalletContext";
 import {
@@ -100,6 +99,11 @@ export const GiveBadgeSection = () => {
   const [commentBadge, setCommentBadge] = useState<string>();
   const [loading, setLoading] = useState<boolean>(false);
   const [text, setText] = useState<string>("");
+
+  // New state variables for handling checks
+  const [isChecking, setIsChecking] = useState(false);
+  const [canAttest, setCanAttest] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Resets the context when the component is mounted for the first time
   useEffect(() => {
@@ -171,7 +175,6 @@ export const GiveBadgeSection = () => {
       queryVariables,
     );
 
-    // Behold the pyramid of doom. Where no error shall pass.
     if (
       !success ||
       response === null ||
@@ -260,6 +263,73 @@ export const GiveBadgeSection = () => {
       ? "bg-[#B1EF42B2]"
       : "bg-[#37383A]";
 
+  // Perform asynchronous checks when inputs change
+  useEffect(() => {
+    const checkAttestationConditions = async () => {
+      if (!badgeInputAddress || !inputBadge) {
+        setCanAttest(false);
+        setErrorMessage(null);
+        return;
+      }
+
+      setIsChecking(true);
+      setErrorMessage(null);
+
+      try {
+        if (inputBadge.uid === ZUVILLAGE_SCHEMAS.ATTEST_MANAGER.uid) {
+          const isManager = await hasRole(ROLES.MANAGER, badgeInputAddress.address);
+          if (isManager) {
+            setCanAttest(false);
+            setErrorMessage("Address is already a Manager");
+          } else {
+            setCanAttest(true);
+          }
+        } else if (inputBadge.uid === ZUVILLAGE_SCHEMAS.ATTEST_VILLAGER.uid) {
+          if (inputBadge.title === "Check-in") {
+            const isVillager = await hasRole(ROLES.VILLAGER, badgeInputAddress.address);
+            if (isVillager) {
+              setCanAttest(false);
+              setErrorMessage("Address already checked-in");
+            } else {
+              setCanAttest(true);
+            }
+          } else if (inputBadge.title === "Check-out") {
+            if (!isBytes32(commentBadge as `0x${string}`)) {
+              setCanAttest(false);
+              setErrorMessage("Invalid reference UID");
+            } else {
+              const isVillager = await hasRole(ROLES.VILLAGER, badgeInputAddress.address);
+              if (!isVillager) {
+                setCanAttest(false);
+                setErrorMessage("Address already checked-out");
+              } else {
+                setCanAttest(true);
+              }
+            }
+          }
+        } else if (inputBadge.uid === ZUVILLAGE_SCHEMAS.ATTEST_EVENT.uid) {
+          const isVillager = await hasRole(ROLES.VILLAGER, badgeInputAddress.address);
+          if (!isVillager) {
+            setCanAttest(false);
+            setErrorMessage("Address Can't Receive Badges");
+          } else {
+            setCanAttest(true);
+          }
+        } else {
+          setCanAttest(false);
+          setErrorMessage("Invalid Badge");
+        }
+      } catch (error) {
+        setCanAttest(false);
+        setErrorMessage("An error occurred while checking conditions");
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkAttestationConditions();
+  }, [badgeInputAddress, inputBadge, commentBadge]);
+
   // Submit attestation
   const handleAttest = async () => {
     if (!address) {
@@ -298,82 +368,31 @@ export const GiveBadgeSection = () => {
       return;
     }
 
+    if (!canAttest) {
+      setLoading(false);
+      notifyError({
+        title: "Cannot attest",
+        message: errorMessage || "Conditions not met",
+      });
+      return;
+    }
+
     let encodeParam = "";
     let encodeArgs: string[] = [];
     if (inputBadge.uid === ZUVILLAGE_SCHEMAS.ATTEST_MANAGER.uid) {
       encodeParam = ZUVILLAGE_SCHEMAS.ATTEST_MANAGER.data;
       encodeArgs = ["Manager"];
-      const isManager = await hasRole(ROLES.MANAGER, badgeInputAddress.address);
-      if (isManager) {
-        setLoading(false);
-        notifyError({
-          title: "Address is already a Manager",
-          message: "Address already have this badge.",
-        });
-        return;
-      }
     } else if (inputBadge.uid === ZUVILLAGE_SCHEMAS.ATTEST_VILLAGER.uid) {
       if (inputBadge.title === "Check-in") {
         encodeParam = ZUVILLAGE_SCHEMAS.ATTEST_VILLAGER.data;
         encodeArgs = ["Check-in"];
-        const isVillager = await hasRole(
-          ROLES.VILLAGER,
-          badgeInputAddress.address,
-        );
-        if (isVillager) {
-          setLoading(false);
-          notifyError({
-            title: "Address already checked-in",
-            message: "Address already have this badge.",
-          });
-          return;
-        }
       } else if (inputBadge.title === "Check-out") {
         encodeParam = ZUVILLAGE_SCHEMAS.ATTEST_VILLAGER.data;
         encodeArgs = ["Check-out"];
-        if (!isBytes32(commentBadge as `0x${string}`)) {
-          setLoading(false);
-          notifyError({
-            title: "Invalid reference UID",
-            message: "The format provided is not a valid bytes32.",
-          });
-          return;
-        }
-        const isVillager = await hasRole(
-          ROLES.VILLAGER,
-          badgeInputAddress.address,
-        );
-        if (!isVillager) {
-          setLoading(false);
-          notifyError({
-            title: "Address already checked-out",
-            message: "Address already have this badge.",
-          });
-          return;
-        }
       }
     } else if (inputBadge.uid === ZUVILLAGE_SCHEMAS.ATTEST_EVENT.uid) {
       encodeParam = ZUVILLAGE_SCHEMAS.ATTEST_EVENT.data;
       encodeArgs = [inputBadge.title, commentBadge ?? ""];
-      const isVillager = await hasRole(
-        ROLES.VILLAGER,
-        badgeInputAddress.address,
-      );
-      if (!isVillager) {
-        setLoading(false);
-        notifyError({
-          title: "Address Can't Receive Badges",
-          message: "Non-Villagers cannot send/receive badges.",
-        });
-        return;
-      }
-    } else {
-      setLoading(false);
-      notifyError({
-        title: "Invalid Badge",
-        message: "Unexistent or invalid badge selected.",
-      });
-      return;
     }
 
     const data = encodeAbiParameters(
@@ -417,7 +436,6 @@ export const GiveBadgeSection = () => {
       return;
     }
 
-    // TODO: Move to useNotify to create a notifySuccessWithLink function
     toast({
       position: "top-right",
       duration: 4000,
@@ -456,8 +474,6 @@ export const GiveBadgeSection = () => {
     setText("");
     setInputAddress("");
     setBadgeInputAddress(null);
-
-    return;
   };
 
   const renderStepContent = (addressStep: GiveBadgeStepAddress) => {
@@ -474,7 +490,7 @@ export const GiveBadgeSection = () => {
                   gap={8}
                 >
                   <Text className="flex text-slate-50 text-2xl font-normal font-['Space Grotesk'] leading-loose">
-                    Let&apos;s give a badge to someone
+                    Let's give a badge to someone
                   </Text>
                   <Flex className="w-full flex-col">
                     <Flex className="gap-4 pb-4 justify-start items-center">
@@ -644,7 +660,7 @@ export const GiveBadgeSection = () => {
                   <Box>
                     <Flex className="p-4 gap-4 items-center">
                       <Text className="flex min-w-[80px] text-slate-50 opacity-70 text-sm font-normal leading-tight">
-                        &#x26A0;WARNING&#x26A0;
+                        ⚠WARNING⚠
                         <br />
                         {`This action is irreversible. You are checking out in the name of ` +
                           badgeInputAddress.getEllipsedAddress() +
@@ -653,6 +669,11 @@ export const GiveBadgeSection = () => {
                     </Flex>
                   </Box>
                 )}
+              {errorMessage && (
+                <Text color="red.500" className="text-sm font-normal px-4">
+                  {errorMessage}
+                </Text>
+              )}
             </Box>
             <Box className="px-6 py-4 sm:px-[60px] w-full">
               <Button
@@ -660,6 +681,7 @@ export const GiveBadgeSection = () => {
                 _hover={{ bg: "#B1EF42" }}
                 _active={{ bg: "#B1EF42" }}
                 isLoading={loading}
+                isDisabled={!canAttest || isChecking}
                 spinner={<BeatLoader size={8} color="white" />}
                 onClick={() => {
                   setLoading(true);
