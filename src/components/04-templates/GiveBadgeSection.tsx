@@ -71,7 +71,7 @@ export const GiveBadgeSection = () => {
   const { push } = useRouter();
   const { notifyError } = useNotify();
   const unwatch = watchAccount(wagmiConfig, {
-    onChange() {},
+    onChange() { },
   });
   const {
     addressStep,
@@ -92,6 +92,8 @@ export const GiveBadgeSection = () => {
       push("/pre-checkin");
     }
   }, [villagerAttestationCount]);
+
+  const BANNED_BADGE_TITLES: string[] = ["Bdjd", "Test Attestation", "Successfully challenged Burns"];
 
   const [badgeReceiverAddress, setBadgeReceiverAddress] =
     useState<EthereumAddress | null>(null);
@@ -216,13 +218,15 @@ export const GiveBadgeSection = () => {
   };
 
   // Get the current badge selected and move to state
-  const handleBadgeSelectChange = (event: any) => {
+  const handleBadgeSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     let selectedBadge: BadgeTitle | undefined = undefined;
+
     ZUVILLAGE_BADGE_TITLES.map((badge) => {
       if (badge.title === event.target.value) {
         selectedBadge = badge;
       }
     });
+
     if (!selectedBadge) {
       const customBadge: BadgeTitle = {
         title: event.target.value,
@@ -234,6 +238,7 @@ export const GiveBadgeSection = () => {
       };
       selectedBadge = customBadge;
     }
+
     setInputBadge(selectedBadge);
   };
 
@@ -255,12 +260,12 @@ export const GiveBadgeSection = () => {
   // Changes the continue arrow color based on the status of a valid input address
   const iconColor =
     (inputAddress && isAddress(inputAddress)) ||
-    (badgeInputAddress && isAddress(badgeInputAddress?.address))
-      ? "text-[#000000  ]"
+      (badgeInputAddress && isAddress(badgeInputAddress?.address))
+      ? "text-[#000000]"
       : "text-[#F5FFFFB2]";
   const iconBg =
     (inputAddress && isAddress(inputAddress)) ||
-    (badgeInputAddress && isAddress(badgeInputAddress?.address))
+      (badgeInputAddress && isAddress(badgeInputAddress?.address))
       ? "bg-[#B1EF42B2]"
       : "bg-[#37383A]";
 
@@ -617,15 +622,17 @@ export const GiveBadgeSection = () => {
                       color="white"
                       onChange={handleBadgeSelectChange}
                     >
-                      {inputBadgeTitleList?.map((title, index) => (
-                        <option
-                          key={index}
-                          value={title}
-                          className="text-black"
-                        >
-                          {title}
-                        </option>
-                      ))}
+                      {inputBadgeTitleList
+                        ?.filter((title) => !BANNED_BADGE_TITLES.includes(title))
+                        .map((title, index) => (
+                          <option
+                            key={index}
+                            value={title}
+                            className="text-black"
+                          >
+                            {title}
+                          </option>
+                        ))}
                     </Select>
                   </Card>
                 </>
@@ -705,7 +712,7 @@ export const GiveBadgeSection = () => {
               className="p-6 sm:px-[60px] sm:py-[80px] flex flex-col"
               gap={8}
             >
-              <Flex className="flex justify-center items-center px-1 py-1.5 bg-slate-50 bg-opacity-5 rounded-[100px] w-[100px] h-[100px]">
+              <Flex className="flex justify-center items-center px-1 py-1.5 bg-slate-50 bg-opacity-5 rounded-[100px] w-[とい100px] h-[100px]">
                 <HandHeartIcon className="z-10 text-[#B1EF42]" />
               </Flex>
               <Flex>
